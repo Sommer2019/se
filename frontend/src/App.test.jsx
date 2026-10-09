@@ -11,7 +11,7 @@ const initialMessages = [
 function mockBackend({ messages = initialMessages } = {}) {
   const stored = [...messages]
   return vi.spyOn(globalThis, 'fetch').mockImplementation(async (url, options = {}) => {
-    if (url.endsWith('/hello')) {
+    if (url.endsWith('/message')) {
       return new Response('Hallo vom Backend!')
     }
     if (url.endsWith('/messages') && options.method === 'POST') {
@@ -43,7 +43,7 @@ describe('App', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Backend fragen' }))
 
     expect(await screen.findByText('Hallo vom Backend!')).toBeInTheDocument()
-    expect(fetchMock).toHaveBeenCalledWith('http://localhost:8080/api/hello')
+    expect(fetchMock).toHaveBeenCalledWith('http://localhost:8080/api/message')
   })
 
   it('speichert eine neue Nachricht und lädt die Liste neu', async () => {
