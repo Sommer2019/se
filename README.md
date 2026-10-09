@@ -1,0 +1,102 @@
+# SE – System-Architektur: drei Schichten
+
+Minimal Working Example zu Kapitel 05 „System-Architektur entwerfen“:
+
+| Schicht | Ordner | Technik |
+|---|---|---|
+| 1 Datenbank | `database/` | H2 (SQL-Skripte) |
+| 2 Backend (BE) | `backend/` | Java 25, Spring Boot 4.1.1, Spring Data JPA |
+| 3 Präsentation (FE) | `frontend/` | React + Vite |
+
+## Voraussetzungen
+
+- JDK 25
+- Node.js 20.19+ (bzw. 22.12+)
+
+## Schicht 1: Datenbank
+
+`database/schema.sql` legt die Tabelle `message` an, `database/data.sql` füllt sie mit Testdaten.
+Beide Skripte lassen sich in der H2-Konsole ausführen (Editor-Bereich, grüner Pfeil).
+Das Backend führt dieselben Skripte (`backend/src/main/resources/`) beim Start automatisch aus.
+
+H2-Konsole des laufenden Backends: <http://localhost:8080/h2-console>
+
+- JDBC URL: `jdbc:h2:file:./data/sedb;AUTO_SERVER=TRUE`
+- Benutzer: `sa`, Passwort: leer
+
+Die Datenbank liegt als Datei unter `backend/data/` und überlebt einen Neustart (Persistenz).
+Komplett löschen: `DROP ALL OBJECTS DELETE FILES; SHUTDOWN;`
+
+## Schicht 2: Backend
+
+```bash
+cd backend
+./mvnw spring-boot:run      # Windows: mvnw.cmd spring-boot:run
+./mvnw test                 # Unit-, Slice- und Integrationstests
+```
+
+| Testklasse | Art |
+|---|---|
+| `HelloControllerUnitTest` | reiner Unit-Test mit Mockito, ohne Spring |
+| `HelloControllerWebTest` | `@WebMvcTest`: Routing, JSON, CORS (Repository gemockt) |
+| `MessageRepositoryTest` | `@DataJpaTest`: Entity, Repository und SQL-Skripte auf In-Memory-H2 |
+| `BackendIntegrationTest` | `@SpringBootTest`: alle Schichten des BE zusammen |
+
+Läuft auf <http://localhost:8080>.
+
+| Methode | Pfad | Beschreibung |
+|---|---|---|
+| GET | `/api/hello` | liefert einen einfachen String |
+| GET | `/api/messages` | alle Nachrichten aus der DB |
+| POST | `/api/messages` | neue Nachricht speichern, Body `{"text": "..."}` |
+
+Die Klasse `WebConfig` erlaubt CORS für `http://localhost:5173`. Ohne sie blockiert der Browser
+die Antworten des Backends (in den DevTools, F12, als CORS-Fehler sichtbar).
+
+## Schicht 3: Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+npm test        # Vitest + Testing Library, fetch wird gemockt
+```
+
+Läuft auf <http://localhost:5173>.
+
+- Test 1: Seite öffnen, der Inhalt aus `src/App.jsx` wird angezeigt.
+- Test 2: Text in `src/App.jsx` ändern (z. B. „my first message line“), die Seite aktualisiert sich sofort.
+- Test 3: Button „Backend fragen“ zeigt den String aus dem BE an.
+- Test 4: Änderungen im FE sind dank Vite sofort sichtbar (Hot Module Replacement). Im BE sorgen die
+  Spring Boot DevTools für einen automatischen Neustart, sobald neu kompiliert wird.
+
+## Docker
+
+```bash
+docker compose up --build
+```
+
+- Frontend: <http://localhost:8081> (nginx leitet `/api` ans Backend weiter)
+- Backend: <http://localhost:8080>
+- Die H2-Datei liegt im Volume `db-data`.
+
+Fertige Images aus der GitHub Container Registry statt selbst bauen:
+
+```bash
+TAG=1.0.0 docker compose pull && TAG=1.0.0 docker compose up -d
+```
+
+## CI und Releases (GitHub Actions)
+
+- `ci.yml`: bei jedem Push auf `main` und jedem PR Backend-Tests, Frontend-Lint/Tests/Build,
+  bei PRs zusätzlich ein Probe-Build beider Docker-Images.
+- `release.yml`: baut nach grünen Tests Images für `linux/amd64` und `linux/arm64` und pusht sie nach
+  `ghcr.io/sommer2019/se/backend` und `ghcr.io/sommer2019/se/frontend`.
+  - Push auf `main` → Tags `edge` und `sha-…`
+  - Git-Tag `v1.2.3` → Tags `v1.2.3`, `1.2.3`, `1.2`, `1`, `latest` und ein GitHub Release mit `docker-compose.yml`
+
+Release erstellen:
+
+```bash
+git tag v1.0.0 && git push origin v1.0.0
+```
