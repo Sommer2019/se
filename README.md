@@ -32,8 +32,15 @@ Komplett löschen: `DROP ALL OBJECTS DELETE FILES; SHUTDOWN;`
 ```bash
 cd backend
 ./mvnw spring-boot:run      # Windows: mvnw.cmd spring-boot:run
-./mvnw test
+./mvnw test                 # Unit-, Slice- und Integrationstests
 ```
+
+| Testklasse | Art |
+|---|---|
+| `HelloControllerUnitTest` | reiner Unit-Test mit Mockito, ohne Spring |
+| `HelloControllerWebTest` | `@WebMvcTest`: Routing, JSON, CORS (Repository gemockt) |
+| `MessageRepositoryTest` | `@DataJpaTest`: Entity, Repository und SQL-Skripte auf In-Memory-H2 |
+| `BackendIntegrationTest` | `@SpringBootTest`: alle Schichten des BE zusammen |
 
 Läuft auf <http://localhost:8080>.
 
@@ -52,6 +59,7 @@ die Antworten des Backends (in den DevTools, F12, als CORS-Fehler sichtbar).
 cd frontend
 npm install
 npm run dev
+npm test        # Vitest + Testing Library, fetch wird gemockt
 ```
 
 Läuft auf <http://localhost:5173>.
@@ -61,3 +69,34 @@ Läuft auf <http://localhost:5173>.
 - Test 3: Button „Backend fragen“ zeigt den String aus dem BE an.
 - Test 4: Änderungen im FE sind dank Vite sofort sichtbar (Hot Module Replacement). Im BE sorgen die
   Spring Boot DevTools für einen automatischen Neustart, sobald neu kompiliert wird.
+
+## Docker
+
+```bash
+docker compose up --build
+```
+
+- Frontend: <http://localhost:8081> (nginx leitet `/api` ans Backend weiter)
+- Backend: <http://localhost:8080>
+- Die H2-Datei liegt im Volume `db-data`.
+
+Fertige Images aus der GitHub Container Registry statt selbst bauen:
+
+```bash
+TAG=1.0.0 docker compose pull && TAG=1.0.0 docker compose up -d
+```
+
+## CI und Releases (GitHub Actions)
+
+- `ci.yml`: bei jedem Push auf `main` und jedem PR Backend-Tests, Frontend-Lint/Tests/Build,
+  bei PRs zusätzlich ein Probe-Build beider Docker-Images.
+- `release.yml`: baut nach grünen Tests Images für `linux/amd64` und `linux/arm64` und pusht sie nach
+  `ghcr.io/sommer2019/se/backend` und `ghcr.io/sommer2019/se/frontend`.
+  - Push auf `main` → Tags `edge` und `sha-…`
+  - Git-Tag `v1.2.3` → Tags `v1.2.3`, `1.2.3`, `1.2`, `1`, `latest` und ein GitHub Release mit `docker-compose.yml`
+
+Release erstellen:
+
+```bash
+git tag v1.0.0 && git push origin v1.0.0
+```

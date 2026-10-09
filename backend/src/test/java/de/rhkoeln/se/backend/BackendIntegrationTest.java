@@ -15,7 +15,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 @SpringBootTest(properties = "spring.datasource.url=jdbc:h2:mem:testdb")
 @AutoConfigureMockMvc
-class HelloControllerTest {
+class BackendIntegrationTest {
 
     @Autowired
     private MockMvc mvc;

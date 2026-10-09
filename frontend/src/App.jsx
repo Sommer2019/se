@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
 import './App.css'
 
-// Backend läuft auf Port 8080, das Frontend (Vite) auf 5173.
+// Lokal läuft das Backend auf Port 8080, das Frontend (Vite) auf 5173.
 // Damit der Browser die Antwort akzeptiert, erlaubt das Backend CORS (WebConfig.java).
-const API_URL = 'http://localhost:8080/api'
+// Im Docker-Image wird VITE_API_URL=/api gesetzt, nginx leitet dann ans Backend weiter.
+const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8080/api'
 
 function App() {
   const [hello, setHello] = useState('')

@@ -1,0 +1,21 @@
+# Startet alle Schichten: docker compose up --build
+# Frontend: http://localhost:8081, Backend direkt: http://localhost:8080
+services:
+  backend:
+    image: ${REGISTRY:-ghcr.io/sommer2019/se}/backend:${TAG:-latest}
+    build: ./backend
+    ports:
+      - "8080:8080"
+    volumes:
+      - db-data:/app/data
+
+  frontend:
+    image: ${REGISTRY:-ghcr.io/sommer2019/se}/frontend:${TAG:-latest}
+    build: ./frontend
+    ports:
+      - "8081:80"
+    depends_on:
+      - backend
+
+volumes:
+  db-data:
