@@ -19,9 +19,9 @@ public class HelloController {
         this.repository = repository;
     }
 
-    /** Einfache Methode, die einen String zurückliefert (Schicht 2 + 3). */
-    @GetMapping("/hello")
-    public String hello() {
+    /** Einfache Methode, die einen String zurückliefert (Aufgabe „BE-Projekt aufsetzen“). */
+    @GetMapping("/message")
+    public String message() {
         return "Hallo vom Backend!";
     }
 

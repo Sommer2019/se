@@ -14,7 +14,7 @@ function App() {
 
   async function loadHello() {
     try {
-      const res = await fetch(`${API_URL}/hello`)
+      const res = await fetch(`${API_URL}/message`)
       setHello(await res.text())
       setError('')
     } catch (e) {

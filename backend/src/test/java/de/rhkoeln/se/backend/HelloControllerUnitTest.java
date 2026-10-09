@@ -25,7 +25,7 @@ class HelloControllerUnitTest {
 
     @Test
     void helloReturnsFixedString() {
-        assertThat(controller.hello()).isEqualTo("Hallo vom Backend!");
+        assertThat(controller.message()).isEqualTo("Hallo vom Backend!");
     }
 
     @Test

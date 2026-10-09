@@ -17,7 +17,8 @@ Minimal Working Example zu Kapitel 05 „System-Architektur entwerfen“:
 
 `database/schema.sql` legt die Tabelle `message` an, `database/data.sql` füllt sie mit Testdaten.
 Beide Skripte lassen sich in der H2-Konsole ausführen (Editor-Bereich, grüner Pfeil).
-Das Backend führt dieselben Skripte (`backend/src/main/resources/`) beim Start automatisch aus.
+Im Backend legt dagegen Hibernate die Tabelle anhand der Entity `Message` selbst an
+(`spring.jpa.hibernate.ddl-auto=update`); danach füllt `backend/src/main/resources/data.sql` die Testdaten ein.
 
 H2-Konsole des laufenden Backends: <http://localhost:8080/h2-console>
 
@@ -39,14 +40,15 @@ cd backend
 |---|---|
 | `HelloControllerUnitTest` | reiner Unit-Test mit Mockito, ohne Spring |
 | `HelloControllerWebTest` | `@WebMvcTest`: Routing, JSON, CORS (Repository gemockt) |
-| `MessageRepositoryTest` | `@DataJpaTest`: Entity, Repository und SQL-Skripte auf In-Memory-H2 |
+| `MessagePersistenceTest` | `EntityManager` über `META-INF/persistence.xml` (Unit `integration-test`), ohne Spring |
+| `MessageRepositoryTest` | `@DataJpaTest`: Entity, Repository und Testdaten auf In-Memory-H2 |
 | `BackendIntegrationTest` | `@SpringBootTest`: alle Schichten des BE zusammen |
 
 Läuft auf <http://localhost:8080>.
 
 | Methode | Pfad | Beschreibung |
 |---|---|---|
-| GET | `/api/hello` | liefert einen einfachen String |
+| GET | `/api/message` | liefert einen einfachen String |
 | GET | `/api/messages` | alle Nachrichten aus der DB |
 | POST | `/api/messages` | neue Nachricht speichern, Body `{"text": "..."}` |
 

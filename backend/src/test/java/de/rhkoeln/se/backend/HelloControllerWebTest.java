@@ -30,7 +30,7 @@ class HelloControllerWebTest {
 
     @Test
     void helloReturnsPlainString() throws Exception {
-        mvc.perform(get("/api/hello"))
+        mvc.perform(get("/api/message"))
                 .andExpect(status().isOk())
                 .andExpect(content().string("Hallo vom Backend!"));
     }
